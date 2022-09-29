@@ -13,6 +13,9 @@ MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
 
+int ACCEL_X_MOVEMENT_THRESHOLD = 800;
+int ACCEL_Y_MOVEMENT_THRESHOLD = 800;
+int ACCEL_Z_MOVEMENT_THRESHOLD = 800;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -128,21 +131,25 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    ypr[0] = ypr[0] * 180 / M_PI;
-    ypr[1] = ypr[1] * 180 / M_PI;
-    ypr[2] = ypr[2] * 180 / M_PI;
+    if (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD) {
+      // means not moving
+    } else {
+      ypr[0] = ypr[0] * 180 / M_PI;
+      ypr[1] = ypr[1] * 180 / M_PI;
+      ypr[2] = ypr[2] * 180 / M_PI;
 
-    Serial.print(ypr[0]);
-    Serial.print("/");
-    Serial.print(ypr[1]);
-    Serial.print("/");
-    Serial.println(ypr[2]);
+      Serial.print(ypr[0]);
+      Serial.print("/");
+      Serial.print(ypr[1]);
+      Serial.print("/");
+      Serial.println(ypr[2]);
 
-    Serial.print(aaWorld.x);
-    Serial.print("/");
-    Serial.print(aaWorld.y);
-    Serial.print("/");
-    Serial.println(aaWorld.z);
+      Serial.print(aaWorld.x);
+      Serial.print("/");
+      Serial.print(aaWorld.y);
+      Serial.print("/");
+      Serial.println(aaWorld.z);
+    }
 
-    delay(100);
+    delay(30);
 }
