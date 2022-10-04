@@ -19,7 +19,6 @@ int ACCEL_Z_MOVEMENT_THRESHOLD = 800;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
-uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
 uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
 uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
 uint16_t fifoCount;     // count of all bytes currently in FIFO
@@ -71,7 +70,7 @@ void setup() {
     // Serial.println(F("\nSend any character to begin DMP programming and demo: "));
     // while (Serial.available() && Serial.read()); // empty buffer
     // while (!Serial.available());                 // wait for data
-    // while (Serial.available() && Serial.read()); // empty buffer again
+    while (Serial.available() && Serial.read()); // empty buffer again
 
     // load and configure the DMP
     // Serial.println(F("Initializing DMP..."));
@@ -88,9 +87,9 @@ void setup() {
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
         // Calibration Time: generate offsets and calibrate our MPU6050
-        mpu.CalibrateAccel(6);
-        mpu.CalibrateGyro(6);
-        mpu.PrintActiveOffsets();
+        // mpu.CalibrateAccel(6);
+        // mpu.CalibrateGyro(6);
+        // mpu.PrintActiveOffsets();
         // turn on the DMP, now that it's ready
         // Serial.println(F("Enabling DMP..."));
         mpu.setDMPEnabled(true);
@@ -117,11 +116,23 @@ void setup() {
 // ===                    MAIN PROGRAM LOOP                     ===
 // ================================================================
 
+int initialDelay = 0;
 void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
 
-    mpu.dmpGetCurrentFIFOPacket(fifoBuffer);
+    mpu.resetFIFO();
+    fifoCount = mpu.getFIFOCount();
+    while (fifoCount < packetSize) {
+      fifoCount = mpu.getFIFOCount();
+    }
+
+    while (fifoCount >= packetSize) {      
+      mpu.getFIFOBytes(fifoBuffer, packetSize);
+      fifoCount -= packetSize;
+    }
+
+    // mpu.dmpGetCurrentFIFOPacket(fifoBuffer);
     
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
@@ -131,23 +142,34 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD) {
+    if (initialDelay <= 300) {
+      initialDelay++;
+    }
+
+    if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
       // means not moving
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
+      // Serial.print("Yaw:");
       Serial.print(ypr[0]);
-      Serial.print("/");
+      Serial.print(",");
+      // // Serial.print("Pitch:");
       Serial.print(ypr[1]);
-      Serial.print("/");
-      Serial.println(ypr[2]);
+      Serial.print(",");
+      // // Serial.print("Roll:");
+      Serial.print(ypr[2]);
 
+      Serial.print("||");
+      // Serial.print("AccelX:");
       Serial.print(aaWorld.x);
-      Serial.print("/");
+      Serial.print(",");
+      // Serial.print("AccelY:");
       Serial.print(aaWorld.y);
-      Serial.print("/");
+      Serial.print(",");
+      // Serial.print("AccelZ:");
       Serial.println(aaWorld.z);
     }
 
