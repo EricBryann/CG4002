@@ -117,6 +117,7 @@ void setup() {
 // ================================================================
 
 int initialDelay = 0;
+int movementPoint = 0;
 void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
@@ -148,6 +149,7 @@ void loop() {
 
     if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
       // means not moving
+      //movementPoint = 0;
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
@@ -171,6 +173,8 @@ void loop() {
       Serial.print(",");
       // Serial.print("AccelZ:");
       Serial.println(aaWorld.z / 100.0);
+
+      //movementPoint++;
     }
 
     delay(30);
