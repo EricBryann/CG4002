@@ -51,6 +51,10 @@ void setup() {
         Fastwire::setup(400, true);
     #endif
 
+    ready_to_run = false;
+    send_data = true;
+    beetleNo = 2;             // CHANGE THIS NUMBER FOR EACH BEETLE!
+
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
@@ -75,7 +79,7 @@ void setup() {
     // Serial.println(F("\nSend any character to begin DMP programming and demo: "));
     // while (Serial.available() && Serial.read()); // empty buffer
     // while (!Serial.available());                 // wait for data
-    while (Serial.available() && Serial.read()); // empty buffer again
+    // while (Serial.available() && Serial.read()); // empty buffer again
 
     // load and configure the DMP
     // Serial.println(F("Initializing DMP..."));
@@ -125,61 +129,74 @@ int initialDelay = 0;
 int movementPoint = 0;
 void loop() {
     // if programming failed, don't try to do anything
-    if (!dmpReady) return;
+    // if (!dmpReady) return;
 
-    mpu.resetFIFO();
-    fifoCount = mpu.getFIFOCount();
-    while (fifoCount < packetSize) {
+    if (ready_to_run == false && Serial.available()) { // Wait for handshake
+      String handshake = Serial.readString();
+      if (handshake == "start") {
+        ready_to_run = true;
+        Serial.print("<INCOMING DATA FROM B" + String(beetleNo) + "!!>");
+        delay(1000);
+      }
+    }
+
+    if (ready_to_run) {
+      mpu.resetFIFO();
       fifoCount = mpu.getFIFOCount();
-    }
+      while (fifoCount < packetSize) {
+        fifoCount = mpu.getFIFOCount();
+      }
 
-    while (fifoCount >= packetSize) {      
-      mpu.getFIFOBytes(fifoBuffer, packetSize);
-      fifoCount -= packetSize;
-    }
+      while (fifoCount >= packetSize) {      
+        mpu.getFIFOBytes(fifoBuffer, packetSize);
+        fifoCount -= packetSize;
+      }
 
-    // mpu.dmpGetCurrentFIFOPacket(fifoBuffer);
-    
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+      // mpu.dmpGetCurrentFIFOPacket(fifoBuffer);
+      
+      mpu.dmpGetQuaternion(&q, fifoBuffer);
+      mpu.dmpGetGravity(&gravity, &q);
+      mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
-    mpu.dmpGetAccel(&aa, fifoBuffer);
-    mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-    mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+      mpu.dmpGetAccel(&aa, fifoBuffer);
+      mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+      mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (initialDelay <= 300) {
-      initialDelay++;
-    }
+      if (initialDelay <= 300) {
+        initialDelay++;
+      }
 
-    if (initialDelay <= 300 || (!(movementPoint > 0 && movementPoint < 40) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
-      // means not moving
-      movementPoint = 0;
-    } else {
-      ypr[0] = ypr[0] * 180 / M_PI;
-      ypr[1] = ypr[1] * 180 / M_PI;
-      ypr[2] = ypr[2] * 180 / M_PI;
+      if (initialDelay <= 300 || (!(movementPoint > 0 && movementPoint < 40) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
+        // means not moving
+        movementPoint = 0;
+      } else {
+        ypr[0] = ypr[0] * 180 / M_PI;
+        ypr[1] = ypr[1] * 180 / M_PI;
+        ypr[2] = ypr[2] * 180 / M_PI;
 
-      // Serial.print("Yaw:");
-      Serial.print(ypr[0]);
-      Serial.print(",");
-      // // Serial.print("Pitch:");
-      Serial.print(ypr[1]);
-      Serial.print(",");
-      // // Serial.print("Roll:");
-      Serial.print(ypr[2]);
+        // Serial.print("Yaw:");
+        Serial.print("<");
+        Serial.print(ypr[0]);
+        Serial.print(",");
+        // // Serial.print("Pitch:");
+        Serial.print(ypr[1]);
+        Serial.print(",");
+        // // Serial.print("Roll:");
+        Serial.print(ypr[2]);
 
-      Serial.print("||");
-      // Serial.print("AccelX:");
-      Serial.print(aaWorld.x / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelY:");
-      Serial.print(aaWorld.y / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelZ:");
-      Serial.println(aaWorld.z / 100.0);
+        Serial.print("||");
+        // Serial.print("AccelX:");
+        Serial.print(aaWorld.x / 100.0);
+        Serial.print(",");
+        // Serial.print("AccelY:");
+        Serial.print(aaWorld.y / 100.0);
+        Serial.print(",");
+        // Serial.print("AccelZ:");
+        Serial.print(aaWorld.z / 100.0);
+        Serial.println(">");
 
-      movementPoint++;
+        movementPoint++;
+      }
     }
 
     delay(30);
