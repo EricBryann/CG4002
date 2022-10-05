@@ -4,7 +4,7 @@ import time
 ser = serial.Serial('/dev/cu.usbmodem1101')
 ser.flushInput()
 
-i = 1
+i = 50
 t_end = time.time() + 15
 print("Wait for 15 secs before reading data")
 while(time.time() < t_end):
