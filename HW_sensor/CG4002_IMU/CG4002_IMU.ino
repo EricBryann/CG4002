@@ -152,20 +152,19 @@ void loop() {
       initialDelay++;
     }
 
-    if (initialDelay <= 300 || (!(movementPoint > 0 && movementPoint < 40) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
+    if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
       // means not moving
-      movementPoint = 0;
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
       // Serial.print("Yaw:");
-      Serial.print(ypr[0]);
-      Serial.print(",");
+      Serial.print(String(ypr[0]) + ",");
+      delay(1);
       // // Serial.print("Pitch:");
-      Serial.print(ypr[1]);
-      Serial.print(",");
+      Serial.print(String(ypr[1]) + ",");
+      delay(1);
       // // Serial.print("Roll:");
       Serial.print(ypr[2]);
 
@@ -179,7 +178,6 @@ void loop() {
       // Serial.print("AccelZ:");
       Serial.println(aaWorld.z / 100.0);
 
-      movementPoint++;
     }
 
     delay(30);

@@ -34,9 +34,9 @@ ser.flushInput()
 i = 1
 t_end = time.time() + 15
 print("Wait for 15 secs before reading data")
-while(time.time() < t_end):
+while (time.time() < t_end):
     continue
-    
+
 while True:
     # change the file name below to collect each data, for each person, you need to collect:
     # train/grenade/ypr_(your name)         -> f1
@@ -65,23 +65,23 @@ while True:
     # KeXuan: k
     # Vignesh: v
     # RuiYang: r
-    # eg: f1 = open("train/shield/ypr_r.txt", "a")
+    # eg: f1 = open("train/shield/ypr_r.txt", "w")
     # if you receive message saying that you do not have the directory, can create the folder with the name first.
-    f1 = open("train/reload/ypr" + str(i) + ".txt", "a")
-    f2 = open("train/reload/accel" + str(i) + ".txt", "a")
+    f1 = open('test/grenade/ypr_r' + str(i) + ".txt", "w")
+    f2 = open("test/grenade/accel_r" + str(i) + ".txt", "w")
     ser.flushInput()
     ser.flushOutput()
     print("Start your action for file " + str(i))
 
-    #t_end = time.time() + 3
+    # t_end = time.time() + 3
     while True:
         try:
             ser_bytes = ser.readline()
             decoded_bytes = ser_bytes.decode("utf-8")
             yprAccel = decoded_bytes.split("||")
-            print(yprAccel[0])  # if you are using MAC, use print(yprAccel[0] + '\n') to format the text file
+            print(yprAccel[0])
             print(yprAccel[1])
-            f1.write(yprAccel[0])
+            f1.write(yprAccel[0] + '\n')
             f2.write(yprAccel[1])
         except:
             print("Stop taking data")
