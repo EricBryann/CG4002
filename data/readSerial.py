@@ -15,6 +15,9 @@ Then you need to wait until the next "Start your action for file x appears, then
 For each person, please help me generate at least 100 data for each action (grenade, reload, shield, end game movement),
 the more action you generated the better our model accuracy :D
 
+Btw, make sure when you wear the wristband with sensor, the IMU sensor (the blue colour one) is facing outwards (which
+means that battery is at the right, not left!)
+
 Thank you!!!!!
 """
 
@@ -23,12 +26,12 @@ Thank you!!!!!
 
 # for Mac, go to terminal, use the command ls /dev/cu.usbmodem then press TAB and see which one appears, copy the whole
 # thing to the code below:
-ser = serial.Serial('/dev/cu.usbmodem1101')
+ser = serial.Serial('COM3')
 ser.flushInput()
 
 # change this i variable to rename the data file, for example if you have trained 20 data and stopped. After a while
 # if you want to generate data again, can change the name of i to say 21, so that it will continue with ypr21.txt.
-i = 50
+i = 1
 t_end = time.time() + 15
 print("Wait for 15 secs before reading data")
 while(time.time() < t_end):
@@ -64,8 +67,8 @@ while True:
     # RuiYang: r
     # eg: f1 = open("train/shield/ypr_r.txt", "a")
     # if you receive message saying that you do not have the directory, can create the folder with the name first.
-    f1 = open("train/shield/ypr" + str(i) + ".txt", "a")
-    f2 = open("train/shield/accel" + str(i) + ".txt", "a")
+    f1 = open("train/reload/ypr" + str(i) + ".txt", "a")
+    f2 = open("train/reload/accel" + str(i) + ".txt", "a")
     ser.flushInput()
     ser.flushOutput()
     print("Start your action for file " + str(i))
