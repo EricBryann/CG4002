@@ -42,12 +42,20 @@ while True:
     # train/reload/accel_(your name)        -> f2
     # train/shield/ypr_(your name)          -> f1
     # train/shield/accel_(your name)        -> f2
+    # train/end/ypr_(your name)             -> f1
+    # train/end/accel_(your name)           -> f2
+    # train/noise/ypr_(your name)           -> f1
+    # train/noise/accel_(your name)         -> f2
     # test/grenade/ypr_(your name)          -> f1
     # test/grenade/accel_(your name)        -> f2
     # test/reload/ypr_(your name)           -> f1
     # test/reload/accel_(your name)         -> f2
     # test/shield/ypr_(your name)           -> f1
     # test/shield/accel_(your name)         -> f2
+    # test/end/ypr_(your name)              -> f1
+    # test/end/accel_(your name)            -> f2
+    # test/noise/ypr_(your name)            -> f1
+    # test/noise/accel_(your name)          -> f2
     # To fill in (your name), can follow this:
     # Eric: e
     # ShuHao: s
@@ -56,8 +64,8 @@ while True:
     # RuiYang: r
     # eg: f1 = open("train/shield/ypr_r.txt", "a")
     # if you receive message saying that you do not have the directory, can create the folder with the name first.
-    f1 = open("shield/ypr" + str(i) + ".txt", "a")
-    f2 = open("shield/accel" + str(i) + ".txt", "a")
+    f1 = open("train/shield/ypr" + str(i) + ".txt", "a")
+    f2 = open("train/shield/accel" + str(i) + ".txt", "a")
     ser.flushInput()
     ser.flushOutput()
     print("Start your action for file " + str(i))
@@ -68,7 +76,7 @@ while True:
             ser_bytes = ser.readline()
             decoded_bytes = ser_bytes.decode("utf-8")
             yprAccel = decoded_bytes.split("||")
-            print(yprAccel[0])
+            print(yprAccel[0])  # if you are using MAC, use print(yprAccel[0] + '\n') to format the text file
             print(yprAccel[1])
             f1.write(yprAccel[0])
             f2.write(yprAccel[1])
