@@ -13,6 +13,11 @@ MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
 
+bool ready_to_run;    // Decides if handshake as been made.
+bool send_data;       // Sends a series of data, but only once.
+long x, y, z;         // Coordinates from IR and accelerometers.
+int beetleNo;         // For labelling the beetles.
+
 int ACCEL_X_MOVEMENT_THRESHOLD = 800;
 int ACCEL_Y_MOVEMENT_THRESHOLD = 800;
 int ACCEL_Z_MOVEMENT_THRESHOLD = 800;
@@ -46,10 +51,14 @@ void setup() {
         Fastwire::setup(400, true);
     #endif
 
+    ready_to_run = false;
+    send_data = true;
+    beetleNo = 2;             // CHANGE THIS NUMBER FOR EACH BEETLE!
+
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
     // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
@@ -117,9 +126,18 @@ void setup() {
 // ================================================================
 
 int initialDelay = 0;
+int movementPoint = 0;
 void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
+
+    while(!ready_to_run) {
+      if (Serial.available() && Serial.readString() == "start") { // Wait for handshake
+          ready_to_run = true;
+          Serial.print("<INCOMING DATA FROM B" + String(beetleNo) + "!!>");
+          delay(1000);
+      }
+    }
 
     mpu.resetFIFO();
     fifoCount = mpu.getFIFOCount();
@@ -142,35 +160,43 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (initialDelay <= 300) {
+    if (initialDelay <= 250) {
       initialDelay++;
     }
 
-    if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
+    if (initialDelay <= 250 || (!(movementPoint > 0 && movementPoint < 40) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
       // means not moving
+      movementPoint = 0;
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
-      // Serial.print("Yaw:");
-      Serial.print(ypr[0]);
-      Serial.print(",");
-      // // Serial.print("Pitch:");
-      Serial.print(ypr[1]);
-      Serial.print(",");
-      // // Serial.print("Roll:");
-      Serial.print(ypr[2]);
+      String output = "<" + String(ypr[0]) + "," + String(ypr[1]) + "," + String(ypr[2]) + "||" + String((aaWorld.x / 100.0)) + "," + String((aaWorld.y / 100.0)) + "," + String((aaWorld.z / 100.0)) + String(">");
+      Serial.println(output);
 
-      Serial.print("||");
-      // Serial.print("AccelX:");
-      Serial.print(aaWorld.x / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelY:");
-      Serial.print(aaWorld.y / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelZ:");
-      Serial.println(aaWorld.z / 100.0);
+      // // Serial.print("Yaw:");
+      // Serial.print("<");
+      // Serial.print(ypr[0]);
+      // Serial.print(",");
+      // // // Serial.print("Pitch:");
+      // Serial.print(ypr[1]);
+      // Serial.print(",");
+      // // // Serial.print("Roll:");
+      // Serial.print(ypr[2]);
+
+      // Serial.print("||");
+      // // Serial.print("AccelX:");
+      // Serial.print(aaWorld.x / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelY:");
+      // Serial.print(aaWorld.y / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelZ:");
+      // Serial.print(aaWorld.z / 100.0);
+      // Serial.println(">");
+
+      movementPoint++;
     }
 
     delay(30);

@@ -9,7 +9,7 @@ IRrecv irrecv(RECV_PIN);
 decode_results results;
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(LED_RECV, OUTPUT);
   irrecv.enableIRIn();
 }
@@ -18,7 +18,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   if (irrecv.decode(&results)) {
     if (results.value == GREEN_ENCODING_VALUE) {
-      Serial.println("GREEN shot");
+      Serial.println("<GREEN shot>");
       digitalWrite(LED_RECV, HIGH);
       delay(300);
       digitalWrite(LED_RECV, LOW);

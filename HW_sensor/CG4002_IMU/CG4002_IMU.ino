@@ -159,6 +159,7 @@ void loop() {
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
+<<<<<<< Updated upstream
       // Serial.print("Yaw:");
       Serial.print(String(ypr[0]) + ",");
       delay(1);
@@ -177,6 +178,28 @@ void loop() {
       Serial.print(",");
       // Serial.print("AccelZ:");
       Serial.println(aaWorld.z / 100.0);
+=======
+      String output = String(ypr[0]) + "," + String(ypr[1]) + "," + String(ypr[2]) + "||" + String((aaWorld.x / 100.0)) + "," + String((aaWorld.y / 100.0)) + "," + String((aaWorld.z / 100.0));
+      Serial.println(output);
+      // // Serial.print("Yaw:");
+      // Serial.print(ypr[0]);
+      // Serial.print(",");
+      // // // Serial.print("Pitch:");
+      // Serial.print(ypr[1]);
+      // Serial.print(",");
+      // // // Serial.print("Roll:");
+      // Serial.print(ypr[2]);
+
+      // Serial.print("||");
+      // // Serial.print("AccelX:");
+      // Serial.print(aaWorld.x / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelY:");
+      // Serial.print(aaWorld.y / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelZ:");
+      // Serial.println(aaWorld.z / 100.0);
+>>>>>>> Stashed changes
 
     }
 
