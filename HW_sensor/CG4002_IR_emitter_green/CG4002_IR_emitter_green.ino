@@ -8,7 +8,7 @@ int GREEN_ENCODING_VALUE = 0xFF6890;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(LED, OUTPUT);
   IrSender.begin(PIN_SEND);
 }
@@ -21,7 +21,7 @@ void loop() {
   buttonState = digitalRead(BUTTON);
   if (prevButtonState == LOW && buttonState == HIGH) {
     IrSender.sendNEC(GREEN_ENCODING_VALUE, 32);
-    Serial.println("Green shoot");
+    Serial.println("<Green shoot>");
     numBullets--;
 
     if (numBullets == 0) numBullets = 6;
