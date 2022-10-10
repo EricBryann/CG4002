@@ -1,7 +1,6 @@
 import serial
 import time
 
-<<<<<<< Updated upstream
 """
 To generate data, connect Arduino Beetle with your laptop using the USB to micro-USB cable, then check your port number.
 
@@ -36,19 +35,9 @@ i = 1
 t_end = time.time() + 15
 print("Wait for 15 secs before reading data")
 while (time.time() < t_end):
-=======
-ser = serial.Serial('/dev/cu.usbmodem11101')
-ser.flushInput()
-
-i = 47
-t_end = time.time() + 12
-print("Wait for 12 secs before reading data")
-while(time.time() < t_end):
->>>>>>> Stashed changes
     continue
 
 while True:
-<<<<<<< Updated upstream
     # change the file name below to collect each data, for each person, you need to collect:
     # train/grenade/ypr_(your name)         -> f1
     # train/grenade/accel_(your name)       -> f2
@@ -78,12 +67,8 @@ while True:
     # RuiYang: r
     # eg: f1 = open("train/shield/ypr_r.txt", "w")
     # if you receive message saying that you do not have the directory, can create the folder with the name first.
-    f1 = open('test/grenade/ypr_r' + str(i) + ".txt", "w")
+    f1 = open("test/grenade/ypr_r" + str(i) + ".txt", "w")
     f2 = open("test/grenade/accel_r" + str(i) + ".txt", "w")
-=======
-    f1 = open("noise/ypr" + str(i) + ".txt", "a")
-    f2 = open("noise/accel" + str(i) + ".txt", "a")
->>>>>>> Stashed changes
     ser.flushInput()
     ser.flushOutput()
     print("Start your action for file " + str(i))
