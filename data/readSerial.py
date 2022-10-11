@@ -26,14 +26,14 @@ Thank you!!!!!
 
 # for Mac, go to terminal, use the command ls /dev/cu.usbmodem then press TAB and see which one appears, copy the whole
 # thing to the code below:
-ser = serial.Serial('COM3')
+ser = serial.Serial('/dev/cu.usbmodem11101')
 ser.flushInput()
 
 # change this i variable to rename the data file, for example if you have trained 20 data and stopped. After a while
 # if you want to generate data again, can change the name of i to say 21, so that it will continue with ypr21.txt.
 i = 1
-t_end = time.time() + 15
-print("Wait for 15 secs before reading data")
+t_end = time.time() + 18
+print("Wait for 18 secs before reading data")
 while (time.time() < t_end):
     continue
 
@@ -67,8 +67,8 @@ while True:
     # RuiYang: r
     # eg: f1 = open("train/shield/ypr_r.txt", "w")
     # if you receive message saying that you do not have the directory, can create the folder with the name first.
-    f1 = open("test/grenade/ypr_r" + str(i) + ".txt", "w")
-    f2 = open("test/grenade/accel_r" + str(i) + ".txt", "w")
+    f1 = open("train/noise/ypr_e" + str(i) + ".txt", "w")
+    f2 = open("train/noise/accel_e" + str(i) + ".txt", "w")
     ser.flushInput()
     ser.flushOutput()
     print("Start your action for file " + str(i))
@@ -92,3 +92,4 @@ while True:
     while time.time() < t_end:
         continue
     i += 1
+
