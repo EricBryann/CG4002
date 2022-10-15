@@ -6,7 +6,7 @@ from Helper import Actions
 
 class StateStaff(PlayerStateBase):
     # update the player statistics
-    def update(self, pos_self, pos_opponent, action_self, action_opponent, action_opponent_is_valid, isHit):
+    def update(self, pos_self, pos_opponent, action_self, action_opponent, action_opponent_is_valid):
         self.action = action_self
 
         # check if the shield has to reduced
