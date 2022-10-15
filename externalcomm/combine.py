@@ -1,5 +1,6 @@
 import socket
 import threading
+from threading import Lock
 import queue
 import random
 import json
@@ -17,8 +18,7 @@ import paho.mqtt.client as mqtt
 from random import randrange, uniform
 from GameState import GameState
 from mlp import get_output_from_FPGA
-from slidingwindow import SlidingWindow
-from time import time
+from time import time, sleep
 
 
 queue_to_ai = queue.Queue()
@@ -26,11 +26,15 @@ queue_to_game_logic = queue.Queue()
 queue_to_eval = queue.Queue()
 queue_to_visualizer = queue.Queue()
 
+stopReceivingData = False
+lock = Lock()
 
 class ReceiveFromRelayNode:
+    # global stopReceivingData
+    # global queue_to_ai
     def __init__(self) -> None:
         self.SERVER = 'localhost'   # Get IP Address of this device
-        self.PORT = 5120            #8080
+        self.PORT = 5127         #8080
         self.ADDRESS = ('', self.PORT)
         self.HEADER = 64 
         self.FORMAT = 'utf-8'
@@ -50,17 +54,23 @@ class ReceiveFromRelayNode:
         # Receive Message from RelayNode
         while True:
             message_length_in_byte = (connection.recv(self.HEADER)).decode(self.FORMAT)
-            print (message_length_in_byte)
+            # print (message_length_in_byte)
             if message_length_in_byte:
                 message_length_in_int = int(message_length_in_byte)
                 message = connection.recv(message_length_in_int).decode(self.FORMAT)
                 
+                # if not stopReceivingData:
                 queue_to_ai.put(message)
+                # else:
+                    # queue_to_ai.queue.clear()
+                # else:
+                #     if not queue_to_ai.empty():
+                #         queue_to_ai = queue.Queue()
 
                 if message == self.DISCONNECT_MESSAGE:
                     break
 
-                print(f"{address}: {message}")
+                # print(f"{address}: {message}")
                 connection.send("Message received!".encode(self.FORMAT))
 
         connection.close()
@@ -78,21 +88,70 @@ class ReceiveFromRelayNode:
             print(f"ACTIVE CONNECTIONS - {str(count)}") 
 
 class FPGA():
+    lastRecordedTime = 0
+    TIME_THRESHOLD = 1
+    shouldSleep = False
+
     def __init__(self) -> None:
         pass
+
+    def sendDataToQueue(self, new_list):
+        # print(new_list)
+        # stopReceivingData = True
+        action_int = get_output_from_FPGA(new_list)
+        if action_int == 0:
+            action = 'grenade'
+        elif action_int == 1:
+            action = 'reload'
+        elif action_int == 2:
+            action = 'shield'
+        elif action_int == 3:
+            action = 'none'
+        else:
+            action = 'logout'
+        new_list = []
+        # print(action_int)
+        print(f"Action Predicated by AI - {action}")
+        if action != 'none':
+            if action != 'grenade':
+                queue_to_game_logic.put(action)
+            else:
+                queue_to_visualizer.put(action)
+
+        # stopReceivingData = False
+        if action_int != 3:
+            self.lastRecordedTime = time()
+            self.shouldSleep = True
 
     def run(self):
         action = ''
         i = 0
 
-        action_checker = SlidingWindow()
-
         new_list = []
 
         while True:
-            sensor_readings = queue_to_ai.get()
+            try:
+                sensor_readings = queue_to_ai.get(timeout=self.TIME_THRESHOLD)
+            except:
+                if len(new_list) > 20:
+                    self.sendDataToQueue(new_list)
+                
+                new_list = []
+                continue
+
+            if self.shouldSleep:
+                # print("SLEEPING!")
+                currTime = time()
+                if currTime - self.lastRecordedTime >= 2.2:
+                    self.shouldSleep = False
+                else:
+                    queue_to_ai.queue.clear()
+                    continue
+
             i+=1
-            print(i)
+            # print(i)
+            
+            
             # print(f"FPGA has received - {sensor_readings}, {len(sensor_readings)}, {type(sensor_readings)}")
 
             letter = sensor_readings[4]
@@ -109,25 +168,11 @@ class FPGA():
                 if len(new_list) < 25:
                     new_list.append(sensor_readings)
                 if len(new_list) >= 25:
-                    print(new_list)
-                    action_int = get_output_from_FPGA(new_list, action_checker)
-                    if action_int == 0:
-                        action = 'grenade'
-                    elif action_int == 1:
-                        action = 'reload'
-                    elif action_int == 2:
-                        action = 'shield'
-                    elif action_int == 3:
-                        action = 'none'
-                    else:
-                        action = 'exit'
+                    self.sendDataToQueue(new_list)
                     new_list = []
-                    print(action_int)
-                    print(f"Action Predicated by AI - {action}")
-                    if action != 'grenade':
-                        queue_to_game_logic.put(action)
-                    else:
-                        queue_to_visualizer.put(action)
+                    
+                # self.lastRecordedTime = time()
+    
             else:
                 if letter == 'A':
                     action = 'shoot'
@@ -138,7 +183,8 @@ class FPGA():
                 queue_to_game_logic.put(action)
 
                 
-
+global_game_state_in_dict = dict()
+needUpdate = False
 class GameEngine():
     global hit 
     def __init__(self) -> None:
@@ -148,23 +194,39 @@ class GameEngine():
         self.p2_hit = False
         self.game_state = GameState()
         self.game_state_in_dict = self.game_state.get_dict()
-
   
     def run(self):
-        global hit
+        global needUpdate
         while True:
             action_or_grenade_result = queue_to_game_logic.get()
             if type(action_or_grenade_result) == str:
                 if action_or_grenade_result != 'shot':
                     self.p1_action = action_or_grenade_result
                 else:
-                    break # do nothing, wait for next round
+                    continue # do nothing, wait for next round
             else:
                 self.p1_action = 'grenade'
                 if  action_or_grenade_result == False: 
                     self.game_state.player_2.hp += 30
             
-    
+            if needUpdate:
+                needUpdate = False
+
+                self.game_state.player_1.hp = global_game_state_in_dict['p1']['hp']
+                self.game_state.player_1.bullets = global_game_state_in_dict['p1']['bullets']
+                self.game_state.player_1.grenades = global_game_state_in_dict['p1']['grenades']
+                self.game_state.player_1.shield_time = global_game_state_in_dict['p1']['shield_time']
+                self.game_state.player_1.shield_health = global_game_state_in_dict['p1']['shield_health']
+                self.game_state.player_1.num_deaths = global_game_state_in_dict['p1']['num_deaths']
+                self.game_state.player_1.num_shield = global_game_state_in_dict['p1']['num_shield']
+                self.game_state.player_2.hp = global_game_state_in_dict['p2']['hp']
+                self.game_state.player_2.bullets = global_game_state_in_dict['p2']['bullets']
+                self.game_state.player_2.grenades = global_game_state_in_dict['p2']['grenades']
+                self.game_state.player_2.shield_time = global_game_state_in_dict['p2']['shield_time']
+                self.game_state.player_2.shield_health = global_game_state_in_dict['p2']['shield_health']
+                self.game_state.player_2.num_deaths = global_game_state_in_dict['p2']['num_deaths']
+                self.game_state.player_2.num_shield = global_game_state_in_dict['p2']['num_shield']
+
             self.game_state.update_players(self.p1_action, self.p2_action)
             self.game_state_in_dict = self.game_state.get_dict()
             queue_to_eval.put(self.game_state_in_dict)
@@ -178,8 +240,9 @@ class EvalClient():
         #self.SERVER = '172.25.107.232' COM3 
         #self.SERVER = socket.gethostbyname(socket.gethostname())
 
-        self.SERVER = 'localhost' 
-        self.PORT = 9798
+        # self.SERVER = 'localhost' 
+        self.SERVER = '137.132.92.184'
+        self.PORT = 9999
         self.ADDRESS = (self.SERVER, self.PORT)
         self.HEADER = 64
         self.FORMAT = 'utf-8'
@@ -227,6 +290,8 @@ class EvalClient():
         return msg
 
     def run(self):
+        global needUpdate
+        global global_game_state_in_dict
         while True:
             game_state_in_dict = queue_to_eval.get()
             data = json.dumps(game_state_in_dict)
@@ -252,8 +317,15 @@ class EvalClient():
             correct_game_state = self.recv_correct_game_state()
             print(f"Eval Client - has received {correct_game_state}")
 
+            # Convert type str to dict
+            correct_game_state_in_dict = json.loads(correct_game_state)
+            global_game_state_in_dict = correct_game_state_in_dict
+            needUpdate = True
+            # print(type(correct_game_state_in_dict))
+
+            
             # Send to Visualizer - recalibration
-            queue_to_visualizer.put(correct_game_state)
+            queue_to_visualizer.put(correct_game_state_in_dict)
 
             # The whole process DONE!
             
@@ -270,6 +342,7 @@ class MQTT():
         self.has_received = False
 
     def on_message(self, client, userdata, message):
+        start_time = time()
         grenade_hit = str(message.payload.decode("utf-8"))
         if grenade_hit is not None:
             self.has_received = True
@@ -277,6 +350,8 @@ class MQTT():
                 grenade_hit = bool(True)
             else:
                 grenade_hit = bool(False)
+        end_time = time()
+
 
         print(f'Visualizer has responded Grenade Result - {grenade_hit}')
         
