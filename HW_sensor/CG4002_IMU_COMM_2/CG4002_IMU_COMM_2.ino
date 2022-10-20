@@ -51,10 +51,14 @@ void setup() {
         Fastwire::setup(400, true);
     #endif
 
+    ready_to_run = false;
+    send_data = true;
+    beetleNo = 2;             // CHANGE THIS NUMBER FOR EACH BEETLE!
+
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
     // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
@@ -123,9 +127,20 @@ void setup() {
 
 int initialDelay = 0;
 int movementPoint = 0;
+
+byte data_packet[13];
+
 void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
+//
+    while(!ready_to_run) {
+      if (Serial.available() && Serial.readString() == "start") { // Wait for handshake
+          ready_to_run = true;
+          //Serial.print("<INCOMING DATA FROM B" + String(beetleNo) + "!!>");
+          delay(1000);
+      }
+    }
 
     mpu.resetFIFO();
     fifoCount = mpu.getFIFOCount();
@@ -148,37 +163,103 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (initialDelay <= 300) {
+    if (initialDelay <= 150) {
       initialDelay++;
     }
 
-    if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
-      // means not moving
+    if (movementPoint >= 25) {
+      movementPoint = 0;
+      delay(50);
+    }
+
+    if (initialDelay <= 150 || (!(movementPoint > 0 && movementPoint < 25) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
+//       means not moving
+      movementPoint = 0;
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
-      // Serial.print("Yaw:");
-      Serial.print(String(ypr[0]) + ",");
-      delay(1);
-      // // Serial.print("Pitch:");
-      Serial.print(String(ypr[1]) + ",");
-      delay(1);
-      // // Serial.print("Roll:");
-      Serial.print(ypr[2]);
+      // int y = 10;
+      // int p = 20;
+      // int r = 30;
 
-      Serial.print("||");
-      // Serial.print("AccelX:");
-      Serial.print(aaWorld.x / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelY:");
-      Serial.print(aaWorld.y / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelZ:");
-      Serial.println(aaWorld.z / 100.0);
+      // int ax = 100;
+      // int ay = 200;
+      // int az = 300;
 
+      int16_t y = (int16_t)(ypr[0] * 100);
+      int16_t p = (int16_t)(ypr[1] * 100);
+      int16_t r = (int16_t)(ypr[2] * 100);
+
+      int16_t ax = (int16_t)aaWorld.x;
+      int16_t ay = (int16_t)aaWorld.y;
+      int16_t az = (int16_t)aaWorld.z;
+
+      data_packet[0] = byte('F'); //starting byte is 'z'
+      data_packet[1] = byte( (ax >> 8) & 0xff);
+      data_packet[2] = byte(ax & 0xff);
+      data_packet[3] = byte( (ay >> 8) & 0xff);
+      data_packet[4] = byte(ay & 0xff);
+      data_packet[5] = byte( (az >> 8) & 0xff);
+      data_packet[6] = byte(az & 0xff);
+
+            
+      data_packet[7] = byte( (y >> 8) & 0xff);
+      data_packet[8] = byte(y & 0xff);
+      data_packet[9] = byte( (p >> 8) & 0xff);
+      data_packet[10] = byte(p & 0xff);
+      data_packet[11] = byte( (r >> 8) & 0xff);
+      data_packet[12] = byte(r & 0xff);
+      Serial.write(data_packet, 13);
+      
+      // String output = "<" + String(movementPoint) + ": " +  String(ypr[0]) + "," + String(ypr[1]) + "," + String(ypr[2]); + "," + String((aaWorld.x / 100.0)) + ">";
+      // String output = "<" + String((aaWorld.x / 100.0)) + ">";
+      // String output = "<" + String(ypr[0]) + "," + String(ypr[1]) + "," + String(ypr[2]) + "||" + String((aaWorld.x / 100.0)) + "," + String((aaWorld.y / 100.0)) + "," + String((aaWorld.z / 100.0)) + String(">");
+      // String output = "<" + String(movementPoint) + ": " +  String(ypr[0]) + "," + String(ypr[1]) + "," + String(ypr[2]) + "||" ;
+      // output = output + String((aaWorld.x)) + "," + String((aaWorld.y)) + "," + String((aaWorld.z));
+      // output = output + String(">");
+//       String output = "<" + String(movementPoint) + ": " +  String(y) + "," + String(p) + "," + String(r) + "||" + String(ax) + "," + String(ay) + "," + String(az) + String(">");
+//       Serial.print(output);
+      // String output = "<" + String(movementPoint) + ": " +  String(y) + "," + String(p) + "," + String(r) + "||" + String(ax) + "," + String(ay) + "," + String(az) + ">";
+//      String gyrox = "<" + String(movementPoint) + ": " + String(y) + ">";
+//      Serial.println(gyrox);
+//      String gyroy = "<" + String(movementPoint) + ": " + String(p) + ">";
+//      Serial.println(gyroy);
+//      String gyroz = "<" + String(movementPoint) + ": " + String(r) + ">";
+//      Serial.println(gyroz);
+//      String accelx = "<" + String(movementPoint) + ": " + String(ax) + ">";
+//      Serial.println(accelx);
+//      String accely = "<" + String(movementPoint) + ": " + String(ay) + ">";
+//      Serial.println(accely);
+//      String accelz = "<" + String(movementPoint) + ": " + String(az) + ">";
+//      Serial.println(accelz);
+
+
+
+      // // Serial.print("Yaw:");
+      // Serial.print("<");
+      // Serial.print(ypr[0]);
+      // Serial.print(",");
+      // // // Serial.print("Pitch:");
+      // Serial.print(ypr[1]);
+      // Serial.print(",");
+      // // // Serial.print("Roll:");
+      // Serial.print(ypr[2]);
+
+      // Serial.print("||");
+      // // Serial.print("AccelX:");
+      // Serial.print(aaWorld.x / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelY:");
+      // Serial.print(aaWorld.y / 100.0);
+      // Serial.print(",");
+      // // Serial.print("AccelZ:");
+      // Serial.print(aaWorld.z / 100.0);
+      // Serial.println(">");
+
+      movementPoint++;
     }
-    
+
     delay(50);
 }

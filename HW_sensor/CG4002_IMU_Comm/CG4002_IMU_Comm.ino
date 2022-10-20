@@ -163,16 +163,16 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (initialDelay <= 250) {
+    if (initialDelay <= 150) {
       initialDelay++;
     }
 
-    if (movementPoint >= 40) {
+    if (movementPoint >= 25) {
       movementPoint = 0;
       delay(50);
     }
 
-    if (initialDelay <= 250 || (!(movementPoint > 0 && movementPoint < 25) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
+    if (initialDelay <= 150 || (!(movementPoint > 0 && movementPoint < 25) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
 //       means not moving
       movementPoint = 0;
     } else {
@@ -196,7 +196,7 @@ void loop() {
       int16_t ay = (int16_t)aaWorld.y;
       int16_t az = (int16_t)aaWorld.z;
 
-      data_packet[0] = byte('z'); //starting byte is 'z'
+      data_packet[0] = byte('C');
       data_packet[1] = byte( (ax >> 8) & 0xff);
       data_packet[2] = byte(ax & 0xff);
       data_packet[3] = byte( (ay >> 8) & 0xff);
