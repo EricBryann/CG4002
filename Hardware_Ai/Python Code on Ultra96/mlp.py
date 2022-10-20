@@ -3,16 +3,13 @@ from pynq import allocate
 from pynq import Overlay
 import numpy as np
 from numpy import mean, std, var
-from scipy.stats import skew, kurtosis
 from sklearn.preprocessing import StandardScaler
 from slidingwindow import SlidingWindow
 import time
-import math
 import logging
 
-# import combine
 
-INPUT_NODES = 9 * 6 + 9
+INPUT_NODES = 5 * 6 + 6
 ACC_ACTION_THRESHOLD = 5.2
 
 
@@ -61,7 +58,7 @@ def data_processing(raw_data):
         gyro_z.append(data[5])
     # do feature extraction for each axis input
     processed_data = feature_extraction(acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, processed_data)
-    # expect 63 features
+    # expect 36 features
     return processed_data
 
 
@@ -69,20 +66,14 @@ def feature_extraction(acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, processed_da
     def extract_features(raw_axis_data):
         loaded = []
         tstd = std(raw_axis_data)
-        tminarg = np.argmin(raw_axis_data)
-        tmaxarg = np.argmax(raw_axis_data)
         tmean = mean(raw_axis_data)
-        tskew = skew(raw_axis_data)
-        tkurtosis = kurtosis(raw_axis_data)
-        tinterval = abs(tmaxarg - tminarg)
-        temp = [tmean, tstd, tskew, tkurtosis, tinterval]
+        temp = [tmean, tstd]
         # convert to frequency domain by FFT
         freq_domain = np.fft.rfft(raw_axis_data)
         fmin = abs(min(freq_domain))
         fmax = abs(max(freq_domain))
         energy = sum(abs(freq_domain) ** 2) / 100**2
-        fmed = abs(np.median(freq_domain))
-        freq_temp = [fmax, fmin, fmed, energy]
+        freq_temp = [fmax, fmin, energy]
         temp.extend(freq_temp)
         loaded.extend(temp)
         return loaded
@@ -93,9 +84,6 @@ def feature_extraction(acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, processed_da
     processed_data.extend(extract_features(gyro_x))
     processed_data.extend(extract_features(gyro_y))
     processed_data.extend(extract_features(gyro_z))
-    processed_data.append(var(acc_x))
-    processed_data.append(var(acc_y))
-    processed_data.append(var(acc_z))
     processed_data.append(max(acc_x))
     processed_data.append(max(acc_y))
     processed_data.append(max(acc_z))
@@ -127,7 +115,7 @@ def _get_output_from_fpga(input_data):
         dma.recvchannel.transfer(buffer_output)
         dma.sendchannel.wait()  # wait for send channel
         dma.recvchannel.wait()  # wait for recv channel
-        action_no = buffer_output
+        action_no = buffer_output[0]
     except:
         print("There is an error occurs in FPGA!")
         action_no = 3

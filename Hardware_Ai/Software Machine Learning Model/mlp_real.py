@@ -1,7 +1,7 @@
 # mlp neural network training model
-import pandas as pd
+# import pandas as pd
 from numpy import mean, std
-from scipy.stats import median_abs_deviation, skew, kurtosis
+# from scipy.stats import median_abs_deviation, skew, kurtosis
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -12,7 +12,7 @@ from keras.layers import Dense, LeakyReLU
 import os
 
 
-INPUT_SHAPE = 9*6 + 9
+INPUT_SHAPE = 5*6 + 6
 OUTPUT_SHAPE = 5
 
 
@@ -65,9 +65,9 @@ def load_group(filenames):
             features.extend(extract_features(gyro_x))
             features.extend(extract_features(gyro_y))
             features.extend(extract_features(gyro_z))
-            features.append(np.var(acc_x))
-            features.append(np.var(acc_y))
-            features.append(np.var(acc_z))
+            # features.append(np.var(acc_x))
+            # features.append(np.var(acc_y))
+            # features.append(np.var(acc_z))
             features.append(max(acc_x))
             features.append(max(acc_y))
             features.append(max(acc_z))
@@ -99,15 +99,15 @@ def extract_features(raw_data):
 
     # extract min, max, mean and standard deviation
     tstd = std(raw_data)
-    tminarg = np.argmin(raw_data)
-    tmaxarg = np.argmax(raw_data)
+    # tminarg = np.argmin(raw_data)
+    # tmaxarg = np.argmax(raw_data)
     tmean = mean(raw_data)
     # tmad = median_abs_deviation(raw_data)
     # tmed = np.median(raw_data)
-    tskew = skew(raw_data)
-    tinterval = abs(tmaxarg - tminarg)
-    tkurtosis = kurtosis(raw_data)
-    temp = [tmean, tstd, tskew, tkurtosis, tinterval]
+    # tskew = skew(raw_data)
+    # tinterval = abs(tmaxarg - tminarg)
+    # tkurtosis = kurtosis(raw_data)
+    temp = [tmean, tstd]
     # temp = min_max_normalize(temp)
     # correlation coefficient => covariance
     # convert to frequency domain by FFT
@@ -120,8 +120,8 @@ def extract_features(raw_data):
     # fsecmax = abs(np.partition(np.array(freq_domain).flatten(), -2)[-2])
     # fmad = median_abs_deviation(freq_domain)
     energy = sum(abs(freq_domain)**2) / 100**2
-    fmed = abs(np.median(freq_domain))
-    freq_temp = [fmax, fmin, fmed, energy]
+    # fmed = abs(np.median(freq_domain))
+    freq_temp = [fmax, fmin, energy]
     # freq_temp = min_max_normalize(freq_temp)
     temp.extend(freq_temp)
     # print(temp)
