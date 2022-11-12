@@ -51,6 +51,8 @@ public class Player : M2MqttUnityClient
 
     public string first_msg;
 
+    public Text actionText;
+
 	// MQTT stuff
 
 	public string topicSubscribe = "Capstone/Ultra96Send";
@@ -170,26 +172,28 @@ public class Player : M2MqttUnityClient
         msg = System.Text.Encoding.UTF8.GetString(message);
 
         Debug.Log("Received: " + msg);
-        if (msg != "g") {
-            var dataDict = JSON.Parse(msg);
+        if ((CURRENT_PLAYER == "p1" && msg != "g1") || (CURRENT_PLAYER == "p2" && msg != "g2")) {
+            if (msg != "g1" && msg != "g2" && msg != "n1" && msg != "n2") {
+                var dataDict = JSON.Parse(msg);
 
-            newMyHP = dataDict[CURRENT_PLAYER]["hp"];
-            newMyAction = dataDict[CURRENT_PLAYER]["action"];
-            newMyBullets = dataDict[CURRENT_PLAYER]["bullets"];
-            newMyGrenades = dataDict[CURRENT_PLAYER]["grenades"];
-            newMyKills = dataDict[OPPONENT_PLAYER]["num_deaths"];
-            newMyShields = dataDict[CURRENT_PLAYER]["num_shield"];
-            myShieldHealth = dataDict[CURRENT_PLAYER]["shield_health"];
-            myShieldTime = dataDict[CURRENT_PLAYER]["shield_time"];
-            
-            newOppHP = dataDict[OPPONENT_PLAYER]["hp"];
-            newOppAction = dataDict[OPPONENT_PLAYER]["action"];
-            newOppBullets = dataDict[OPPONENT_PLAYER]["bullets"];
-            newOppGrenades = dataDict[OPPONENT_PLAYER]["grenades"];
-            newOppKills = dataDict[CURRENT_PLAYER]["num_deaths"];
-            newOppShields = dataDict[OPPONENT_PLAYER]["num_shield"];
-            oppShieldHealth = dataDict[OPPONENT_PLAYER]["shield_health"];
-            oppShieldTime = dataDict[OPPONENT_PLAYER]["shield_time"];
+                newMyHP = dataDict[CURRENT_PLAYER]["hp"];
+                newMyAction = dataDict[CURRENT_PLAYER]["action"];
+                newMyBullets = dataDict[CURRENT_PLAYER]["bullets"];
+                newMyGrenades = dataDict[CURRENT_PLAYER]["grenades"];
+                newMyKills = dataDict[OPPONENT_PLAYER]["num_deaths"];
+                newMyShields = dataDict[CURRENT_PLAYER]["num_shield"];
+                myShieldHealth = dataDict[CURRENT_PLAYER]["shield_health"];
+                myShieldTime = dataDict[CURRENT_PLAYER]["shield_time"];
+                
+                newOppHP = dataDict[OPPONENT_PLAYER]["hp"];
+                newOppAction = dataDict[OPPONENT_PLAYER]["action"];
+                newOppBullets = dataDict[OPPONENT_PLAYER]["bullets"];
+                newOppGrenades = dataDict[OPPONENT_PLAYER]["grenades"];
+                newOppKills = dataDict[CURRENT_PLAYER]["num_deaths"];
+                newOppShields = dataDict[OPPONENT_PLAYER]["num_shield"];
+                oppShieldHealth = dataDict[OPPONENT_PLAYER]["shield_health"];
+                oppShieldTime = dataDict[OPPONENT_PLAYER]["shield_time"];
+            }
         } else {
             ThrowGrenadeAndCheckHit();
         }
@@ -256,6 +260,7 @@ public class Player : M2MqttUnityClient
         opponent.UpdateOppBulletCount(maxBullets);
 
         first_msg = msg;
+        actionText.text = "";
     }
 
     // Update is called once per frame
@@ -266,7 +271,7 @@ public class Player : M2MqttUnityClient
 
         // Debug.Log("msg: " + msg);
 		
-		if (msg != first_msg && prevsMsg != msg) {
+		if (msg != first_msg && prevsMsg != msg && msg != "g1" && msg != "g2" && msg != "n1" && msg != "n2") {
 
 			currentHealth = healthBar.GetCurrentHealth();
 			currentOppHealth = opponent.GetOppCurrentHP();
@@ -328,6 +333,8 @@ public class Player : M2MqttUnityClient
                 over.Display();
             }
 
+            actionText.text = "";
+
 			
 			// Rebirth
 			// if (currentHealth <= 0) {
@@ -379,18 +386,30 @@ public class Player : M2MqttUnityClient
 			// }
 
 			prevsMsg = msg;
-		}
+
+		} else if (CURRENT_PLAYER == "p1" && msg == "n1" || CURRENT_PLAYER == "p2" && msg == "n2") {
+            actionText.text = "None";
+			prevsMsg = msg;
+        } else {
+            actionText.text = "";
+        }
 
 	}
 
 	public void ThrowGrenadeAndCheckHit() {
 		grenadeThrowing.ThrowGrenade();
-		if (opponent.GetIsOpponentDetected()) {
-            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("t"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
-            Debug.Log("Just published grenade t.");
-		} else {
-            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("f"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
-            Debug.Log("Just published grenade f.");
+		if (opponent.GetIsOpponentDetected() && CURRENT_PLAYER == "p1") {
+            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("t1"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+            Debug.Log("Just published grenade t1.");
+		} else if (opponent.GetIsOpponentDetected() && CURRENT_PLAYER == "p2") {
+            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("t2"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+            Debug.Log("Just published grenade t2.");
+		} else if (!opponent.GetIsOpponentDetected() && CURRENT_PLAYER == "p1") {
+            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("f1"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+            Debug.Log("Just published grenade f1.");
+        } else {
+            client.Publish(topicPublish, System.Text.Encoding.UTF8.GetBytes("f2"), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+            Debug.Log("Just published grenade f2.");
         }
 	}
 
