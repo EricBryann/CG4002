@@ -17,7 +17,7 @@ Therefore, this repository contains the code used by our various components such
 
 The code for relay node must be run on a Linux OS due to the constraints of the BluePy library used. The file "4002_p1.py" handles the connection of the three beetles owned by player 1, while the file "4002_p2.py" handles the connection of the three beetles owned by player 2. 
 
-Before these two internal comm files run, the Ultra96 server must be activated and has started listening for connections.
+The internal communication servers act as clients to the Ultra96 server. As such, before these two internal comm files run, the Ultra96 server must first be activated and has started listening for connections. 
 
 ## External Comms
 
