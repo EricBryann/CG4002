@@ -62,6 +62,43 @@ The internal communication servers act as clients to the Ultra96 server. As such
 
 ## External_Comms
 
+
+The code for external communication includes three parts: eval_server, one_player_game and two_player_game.
+
+### eval_server
+
+The code `eval_server.py` should run in the very beginning to start the server and wait for the connection from the evaluation client inside the `combine.py`
+
+To install:
+
+`python3 -m venv <virtual_env_name>`
+`source <virtual_env_name>/bin/activate`
+`pip3 install -r requirements.txt`
+
+To run:
+
+Start virtual environment
+`source <virtual_env_name>/bin/activate`
+`python eval_server.py <PORT> <GROUP_ID> <NUM_PLAYERS>`
+
+
+### one_player_game and two_player_game
+
+In both one_player_game and two_player_game directories, the primary code is `combine.py`. This code is to establish the communication between Ultra96 and relay nodes, Ultra96 and evaluation server, as well as Ultra96 and visualizers. It includes a server to wait for the connections from relay nodes and receive the messages. It also includes a evaluation client to send the messages to evaluation server and receive the correct game state from evaluation server during the game play. It also deals with the message transmission between Ultra96 and visualizers via MQTT. 
+
+The codes `GameState.py` `Helper.py` `MoveEngine.py` `PlayerState.py` `StateStaff.py` are imported by `combine.py` to update the players' game state for current round during the game play.
+
+The code `mlp.py` is imported by `combine.py` to get the output from FPGA and map to corresponding predicted players' actions.
+
+The code `combine_refactor.py` in the two_player_game directory is an improved version for `combine.py`. It enhanced the code readiblity and deal with the inconsistency data transmission problem between Ultra96 and visualizers.
+
+To run:
+
+Go to the correct directory
+`python combine.py`
+
+
+
 <>
 
 ## Software_Visualizer
