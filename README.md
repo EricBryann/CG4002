@@ -77,10 +77,8 @@ To install:
 
 To run:
 
-Start virtual environment<br />
-`source <virtual_env_name>/bin/activate`
-`python eval_server.py <PORT> <GROUP_ID> <NUM_PLAYERS>`
-
+Start virtual environment `source <virtual_env_name>/bin/activate`<br />
+Go to the correct directory and run `python eval_server.py <PORT> <GROUP_ID> <NUM_PLAYERS>` <br />
 
 ### one_player_game and two_player_game
 
@@ -94,8 +92,8 @@ The code `combine_refactor.py` in the two_player_game directory is an improved v
 
 To run:
 
-Go to the correct directory and input command
-`python combine.py`
+Go to the correct directory and run `python combine.py`
+
 
 
 
