@@ -1,5 +1,5 @@
 
-# Two_player_game
+# Two Player Game
 
 This directory includes the code for the game in 2-player mode. 
 
