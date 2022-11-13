@@ -6,7 +6,35 @@ Therefore, this repository contains the code used by our various components such
 
 ## Hardware_Sensor
 
-<>
+There are 3 main parts from the hardware sensors to realise this project:
+
+### IMU Sensor MPU6050
+
+This sensor generates accelerations and gyroscope data in the x-y-z axis.
+The directories relevant for this sensor include:
+  - CG4002_IMU_1 (code for player 1's IMU)
+  - CG4002_IMU_2 (code for player 2's IMU)
+  - CG4002_IMU_Calibration (code to calibrate the IMUs and generate offsets)
+  
+ (The code above references [Jrowberg's I2Cdev library](https://github.com/jrowberg/i2cdevlib) and [this](https://wired.chillibasket.com/2015/01/calibrating-mpu6050/) calibration tutorial.
+ 
+ ### IR Receiver VS1838
+ 
+ This receiver detects and receives long-range IR signal.
+ The directories relevant for this sensor include:
+  - CG4002_IR_receiver_red (code for player 1's IR receiver)
+  - CG4002_IR_receiver_green (code for player 2's IR receiver)
+  
+ The code above uses <IRremote.h> library that provides convenient APIs to receive IR signal and decode its encoding value.
+ 
+ ### IR Emitter DFR0095
+ 
+ This emitter will emit IR signal.
+ The directories relevant for this sensor include:
+  - CG4002_IR_emitter_green (code for player 1's IR emitter)
+  - CG4002_IR_emitter_red (code for player 2's IR emitter) 
+  
+The code above uses <IRremote.h> library that provides convenient APIs to send IR signal with its associated encoding value.
 
 ## Hardware_AI
 
