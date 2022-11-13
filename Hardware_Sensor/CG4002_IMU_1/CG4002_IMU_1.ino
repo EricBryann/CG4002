@@ -22,6 +22,9 @@ int ACCEL_X_MOVEMENT_THRESHOLD = 800;
 int ACCEL_Y_MOVEMENT_THRESHOLD = 800;
 int ACCEL_Z_MOVEMENT_THRESHOLD = 800;
 
+int MAX_MOVEMENT_POINTS = 25;
+int DELAY = 50;
+
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
 uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
@@ -51,10 +54,14 @@ void setup() {
         Fastwire::setup(400, true);
     #endif
 
+    ready_to_run = false;
+    send_data = true;
+    beetleNo = 2;             // CHANGE THIS NUMBER FOR EACH BEETLE!
+
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
     // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
@@ -82,12 +89,12 @@ void setup() {
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-    mpu.setXGyroOffset(180);
-    mpu.setYGyroOffset(-163);
-    mpu.setZGyroOffset(-18);
-    mpu.setXAccelOffset(-337);
-    mpu.setYAccelOffset(-2501);
-    mpu.setZAccelOffset(1201); // 1688 factory default for my test chip
+    mpu.setXGyroOffset(-26);
+    mpu.setYGyroOffset(-2);
+    mpu.setZGyroOffset(6);
+    mpu.setXAccelOffset(-2434);
+    mpu.setYAccelOffset(-2);
+    mpu.setZAccelOffset(881); // 1688 factory default for my test chip
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -123,9 +130,20 @@ void setup() {
 
 int initialDelay = 0;
 int movementPoint = 0;
+
+byte data_packet[13];
+
 void loop() {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
+
+    while(!ready_to_run) {
+      if (Serial.available() && Serial.readString() == "start") { // Wait for handshake
+          ready_to_run = true;
+          //Serial.print("<INCOMING DATA FROM B" + String(beetleNo) + "!!>");
+          delay(1000);
+      }
+    }
 
     mpu.resetFIFO();
     fifoCount = mpu.getFIFOCount();
@@ -137,8 +155,6 @@ void loop() {
       mpu.getFIFOBytes(fifoBuffer, packetSize);
       fifoCount -= packetSize;
     }
-
-    // mpu.dmpGetCurrentFIFOPacket(fifoBuffer);
     
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
@@ -148,37 +164,50 @@ void loop() {
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
 
-    if (initialDelay <= 300) {
+    if (initialDelay <= 150) {
       initialDelay++;
     }
 
-    if (initialDelay <= 300 || (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD)) {
+    if (movementPoint >= MAX_MOVEMENT_POINTS) {
+      movementPoint = 0;
+      delay(50);
+    }
+
+    if (initialDelay <= 150 || (!(movementPoint > 0 && movementPoint < MAX_MOVEMENT_POINTS) && (abs(aaWorld.x) < ACCEL_X_MOVEMENT_THRESHOLD && abs(aaWorld.y) < ACCEL_Y_MOVEMENT_THRESHOLD && abs(aaWorld.z) < ACCEL_Z_MOVEMENT_THRESHOLD))) {
       // means not moving
+      movementPoint = 0;
     } else {
       ypr[0] = ypr[0] * 180 / M_PI;
       ypr[1] = ypr[1] * 180 / M_PI;
       ypr[2] = ypr[2] * 180 / M_PI;
 
-      // Serial.print("Yaw:");
-      Serial.print(String(ypr[0]) + ",");
-      delay(1);
-      // // Serial.print("Pitch:");
-      Serial.print(String(ypr[1]) + ",");
-      delay(1);
-      // // Serial.print("Roll:");
-      Serial.print(ypr[2]);
+      int16_t y = (int16_t)(ypr[0] * 100);
+      int16_t p = (int16_t)(ypr[1] * 100);
+      int16_t r = (int16_t)(ypr[2] * 100);
 
-      Serial.print("||");
-      // Serial.print("AccelX:");
-      Serial.print(aaWorld.x / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelY:");
-      Serial.print(aaWorld.y / 100.0);
-      Serial.print(",");
-      // Serial.print("AccelZ:");
-      Serial.println(aaWorld.z / 100.0);
+      int16_t ax = (int16_t)aaWorld.x;
+      int16_t ay = (int16_t)aaWorld.y;
+      int16_t az = (int16_t)aaWorld.z;
 
+      data_packet[0] = byte('C');
+      data_packet[1] = byte( (ax >> 8) & 0xff);
+      data_packet[2] = byte(ax & 0xff);
+      data_packet[3] = byte( (ay >> 8) & 0xff);
+      data_packet[4] = byte(ay & 0xff);
+      data_packet[5] = byte( (az >> 8) & 0xff);
+      data_packet[6] = byte(az & 0xff);
+
+            
+      data_packet[7] = byte( (y >> 8) & 0xff);
+      data_packet[8] = byte(y & 0xff);
+      data_packet[9] = byte( (p >> 8) & 0xff);
+      data_packet[10] = byte(p & 0xff);
+      data_packet[11] = byte( (r >> 8) & 0xff);
+      data_packet[12] = byte(r & 0xff);
+      Serial.write(data_packet, 13);
+      
+      movementPoint++;
     }
-    
-    delay(50);
+
+    delay(DELAY);
 }

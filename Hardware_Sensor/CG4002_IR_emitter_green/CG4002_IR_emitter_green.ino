@@ -38,16 +38,16 @@ void loop() {
         data_packet[i] = byte(0);
       }
       Serial.write(data_packet, 13);
-    numBullets--;
+    // numBullets--;
 
-    if (numBullets == 0) numBullets = 6;
+    // if (numBullets == 0) numBullets = 6;
 
-    for(int i = 0; i < numBullets; i++) {
+    // for(int i = 0; i < numBullets; i++) {
       digitalWrite(LED, HIGH);
-      delay(200);
+      delay(500);
       digitalWrite(LED, LOW);
-      delay(200);
-    }
+      // delay(200);
+    // }
   }
 
   prevButtonState = buttonState;

@@ -29,7 +29,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   if (irrecv.decode(&results)) {
     if (results.value == GREEN_ENCODING_VALUE) {
-//      Serial.println("<GREEN shot>");
       data_packet[0] = byte('E'); //starting byte is 'E' means shot
       for (int i = 1; i <= 12; i++) {
         data_packet[i] = byte(0);
@@ -41,4 +40,6 @@ void loop() {
     }
     irrecv.resume();
   }
+
+  delay(20);
 }

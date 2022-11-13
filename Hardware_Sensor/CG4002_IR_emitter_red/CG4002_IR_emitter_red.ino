@@ -32,22 +32,21 @@ void loop() {
   buttonState = digitalRead(BUTTON);
   if (prevButtonState == LOW && buttonState == HIGH) {
     IrSender.sendNEC(RED_ENCODING_VALUE, 32);
-//    Serial.println("<GREEN shoot>");
       data_packet[0] = byte('D');
       for (int i = 1; i <= 12; i++) {
         data_packet[i] = byte(0);
       }
       Serial.write(data_packet, 13);
-    numBullets--;
+    // numBullets--;
 
-    if (numBullets == 0) numBullets = 6;
+    // if (numBullets == 0) numBullets = 6;
 
-    for(int i = 0; i < numBullets; i++) {
+    // for(int i = 0; i < numBullets; i++) {
       digitalWrite(LED, HIGH);
-      delay(200);
+      delay(500);
       digitalWrite(LED, LOW);
-      delay(200);
-    }
+      // delay(500);
+    // }
   }
 
   prevButtonState = buttonState;
