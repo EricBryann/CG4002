@@ -1,29 +1,42 @@
-
 # Group B06 CG4002 Capstone Project 2022
 
 The motive of the capstone project is to design a two-player first person laser tag game. The game includes standard rules like the players trying to eliminate each other by shooting, and a player can protect themself by activating a shield with a swiping arm gesture. Similarly, players are also given a set number of grenades to throw at the opponent, activating this grenade throwing with a throwing arm gesture. Likewise, players are allowed to reload their guns with a set number of magazines once their bullets run out and this too will be based on a particular arm gesture. These actions are deduced by an AI model run on the Ultra96 FPGA with the help of IMU sensors.
 
 Therefore, this repository contains the code used by our various components such as AI Hardware, Internal and External Comms, Visualiser, etc for th whole project to function together as a whole and they are located within their respective folders.
 
-## Hardware Sensor
+## Hardware_Sensor
 
 <>
 
-## Hardware AI
+## Hardware_AI
+
+The code for building hardware AI can be split into 3 parts: software machine learning (Software ML), high-level synthesis (HLS) and scripts that should be run on Ultra96 (Ultra96).
+
+### Software ML
+
+This directory contains all the necessary codes for training the multilayer-perceptron (MLP) neural network model on Python. The library used is Keras. All the code regarding the creation of the machine learning model is inside _mlp_real.py_. The model must take in training and testing data from the database. The database can be
+cloned through this GitHub repository: [Capstone Database](https://github.com/tryyang2001/Capstone-Training-and-Testing-Database.git). The file _fileprocessing.py_ handles the data preprocessing and feature extraction by taking the raw data from the database and send the processed data to the ML model. The files _data_collection_wireless.py_ and _data_collection_wired.py_ are Python scripts for data collection, they will store the data on your local device as _.txt_ file.
+The file _input_analysis.py_ is used to determine the threshold value for start of action identification.
+
+### HLS
+
+This directory contains codes for performing high-level synthesis. To run the code, download Vivado HLS software and do C-simulation and C-synthesis on the software using the code in this directory. The _hls.cpp_ is the C++ code used for C-synthesis, and the _test_hls.cpp_ is used for C-simulation only.
+
+### Ultra96
+
+This directory contains the files and codes that should be run on Ultra96. The code _mlp.py_ is the Python script used to upload the bitstream to Ultra96 FPGA, and control the I/O and the behaviours of the hardware accelerator. To upload the bitstream to FPGA on Ultra96, we must have a .bit file (_mlp.bit_) and a hardware handoff file (_mlp.hwh_). The codes _slidingwindow.py_ and _power.py_ are helper libraries that are included in _mlp.py_. The former is used to identify start of action and the latter is used for controlling Ultra96 Programming Logic (PL) clock frequencies.
+
+## Internal_Comms
+
+The code for relay node must be run on a Linux OS due to the constraints of the BluePy library used. The file "4002_p1.py" handles the connection of the three beetles owned by player 1, while the file "4002_p2.py" handles the connection of the three beetles owned by player 2.
+
+The internal communication servers act as clients to the Ultra96 server. As such, before these two internal comm files run, the Ultra96 server must first be activated and has started listening for connections.
+
+## External_Comms
 
 <>
 
-## Internal Comms
-
-The code for relay node must be run on a Linux OS due to the constraints of the BluePy library used. The file "4002_p1.py" handles the connection of the three beetles owned by player 1, while the file "4002_p2.py" handles the connection of the three beetles owned by player 2. 
-
-The internal communication servers act as clients to the Ultra96 server. As such, before these two internal comm files run, the Ultra96 server must first be activated and has started listening for connections. 
-
-## External Comms
-
-<>
-
-## Visualizer
+## Software_Visualizer
 
 Unity was the main platform used to develop our augmented reality based visualizer app. The app showcases the various inventories and actions of the players with necessary animations, sound, and visual effects.
 
@@ -31,9 +44,8 @@ Some of the game objects used in the unity project required additional programmi
 
 ## Contributors
 
-* [Eric Bryan](https://github.com/EricBryann)
-* [Rui Yang](https://github.com/tryyang2001)
-* [Kexuan](https://github.com/Cocokkkk)
-* [Shuhao](https://github.com/Rye98)
-* [Vignesh](https://github.com/KVignesh122)
-*
+- [Eric Bryan](https://github.com/EricBryann)
+- [Tan Rui Yang](https://github.com/tryyang2001)
+- [Li Kexuan](https://github.com/Cocokkkk)
+- [Zhong Shuhao](https://github.com/Rye98)
+- [Vignesh Kumaravel](https://github.com/KVignesh122)
