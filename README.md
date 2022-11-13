@@ -2,7 +2,7 @@
 
 The motive of the capstone project is to design a two-player first person laser tag game. The game includes standard rules like the players trying to eliminate each other by shooting, and a player can protect themself by activating a shield with a swiping arm gesture. Similarly, players are also given a set number of grenades to throw at the opponent, activating this grenade throwing with a throwing arm gesture. Likewise, players are allowed to reload their guns with a set number of magazines once their bullets run out and this too will be based on a particular arm gesture. These actions are deduced by an AI model run on the Ultra96 FPGA with the help of IMU sensors.
 
-Therefore, this repository contains the code used by our various components such as AI Hardware, Internal and External Comms, Visualiser, etc for th whole project to function together as a whole and they are located within their respective folders.
+Therefore, this repository contains the code used by our various components such as AI Hardware, Internal and External Comms, Visualiser, etc for the whole project to function together as a whole and they are located within their respective folders.
 
 ## Hardware_Sensor
 
