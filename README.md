@@ -12,28 +12,31 @@ There are 3 main parts from the hardware sensors to realise this project:
 
 This sensor generates accelerations and gyroscope data in the x-y-z axis.
 The directories relevant for this sensor include:
-  - CG4002_IMU_1 (code for player 1's IMU)
-  - CG4002_IMU_2 (code for player 2's IMU)
-  - CG4002_IMU_Calibration (code to calibrate the IMUs and generate offsets)
-  
- (The code above references [Jrowberg's I2Cdev library](https://github.com/jrowberg/i2cdevlib) and [this](https://wired.chillibasket.com/2015/01/calibrating-mpu6050/) calibration tutorial.
- 
- ### IR Receiver VS1838
- 
- This receiver detects and receives long-range IR signal.
- The directories relevant for this sensor include:
-  - CG4002_IR_receiver_red (code for player 1's IR receiver)
-  - CG4002_IR_receiver_green (code for player 2's IR receiver)
-  
- The code above uses <IRremote.h> library that provides convenient APIs to receive IR signal and decode its encoding value.
- 
- ### IR Emitter DFR0095
- 
- This emitter will emit IR signal.
- The directories relevant for this sensor include:
-  - CG4002_IR_emitter_green (code for player 1's IR emitter)
-  - CG4002_IR_emitter_red (code for player 2's IR emitter) 
-  
+
+- CG4002_IMU_1 (code for player 1's IMU)
+- CG4002_IMU_2 (code for player 2's IMU)
+- CG4002_IMU_Calibration (code to calibrate the IMUs and generate offsets)
+
+(The code above references [Jrowberg's I2Cdev library](https://github.com/jrowberg/i2cdevlib) and [this](https://wired.chillibasket.com/2015/01/calibrating-mpu6050/) calibration tutorial.
+
+### IR Receiver VS1838
+
+This receiver detects and receives long-range IR signal.
+The directories relevant for this sensor include:
+
+- CG4002_IR_receiver_red (code for player 1's IR receiver)
+- CG4002_IR_receiver_green (code for player 2's IR receiver)
+
+The code above uses <IRremote.h> library that provides convenient APIs to receive IR signal and decode its encoding value.
+
+### IR Emitter DFR0095
+
+This emitter will emit IR signal.
+The directories relevant for this sensor include:
+
+- CG4002_IR_emitter_green (code for player 1's IR emitter)
+- CG4002_IR_emitter_red (code for player 2's IR emitter)
+
 The code above uses <IRremote.h> library that provides convenient APIs to send IR signal with its associated encoding value.
 
 ## Hardware_AI
@@ -62,7 +65,6 @@ The internal communication servers act as clients to the Ultra96 server. As such
 
 ## External_Comms
 
-
 The code for external communication includes three parts: eval_server, one_player_game and two_player_game.
 
 ### eval_server
@@ -82,7 +84,7 @@ Go to the correct directory and run `python eval_server.py <PORT> <GROUP_ID> <NU
 
 ### one_player_game and two_player_game
 
-In both one_player_game and two_player_game directories, the primary code is `combine.py`. This code is to establish the communication between Ultra96 and relay nodes, Ultra96 and evaluation server, as well as Ultra96 and visualizers. It includes a server to wait for the connections from relay nodes and receive the messages. It also includes a evaluation client to send the messages to evaluation server and receive the correct game state from evaluation server during the game play. It also deals with the message transmission between Ultra96 and visualizers via MQTT. 
+In both one_player_game and two_player_game directories, the primary code is `combine.py`. This code is to establish the communication between Ultra96 and relay nodes, Ultra96 and evaluation server, as well as Ultra96 and visualizers. It includes a server to wait for the connections from relay nodes and receive the messages. It also includes a evaluation client to send the messages to evaluation server and receive the correct game state from evaluation server during the game play. It also deals with the message transmission between Ultra96 and visualizers via MQTT.
 
 The files `GameState.py` `Helper.py` `MoveEngine.py` `PlayerState.py` `StateStaff.py` are imported by `combine.py` to update the players' game state for current round during the game play.
 
@@ -93,11 +95,6 @@ The file `combine_refactor.py` in the two_player_game directory is an improved v
 To run:
 
 Go to the correct directory and run `python combine.py`
-
-
-
-
-<>
 
 ## Software_Visualizer
 
