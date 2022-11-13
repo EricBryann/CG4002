@@ -94,11 +94,6 @@ To run:
 
 Go to the correct directory and run `python combine.py`
 
-
-
-
-<>
-
 ## Software_Visualizer
 
 Unity was the main platform used to develop our augmented reality based visualizer app. The app showcases the various inventories and actions of the players with necessary animations, sound, and visual effects.
